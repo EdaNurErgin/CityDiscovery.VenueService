@@ -2,10 +2,6 @@
 
 namespace CityDiscovery.Venues.Domain.Entities;
 
-/// <summary>
-/// Menüdeki ürün (ör: Latte, Cheeseburger).
-/// DB: MenuItems
-/// </summary>
 public sealed class MenuItem : Entity, IAuditableEntity
 {
     public int MenuCategoryId { get; private set; }

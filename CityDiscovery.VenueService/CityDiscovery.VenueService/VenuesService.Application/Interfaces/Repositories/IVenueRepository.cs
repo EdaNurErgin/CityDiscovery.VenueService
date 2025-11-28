@@ -18,6 +18,17 @@ namespace CityDiscovery.Venues.Application.Interfaces.Repositories
             double longitude,
             double radiusInMeters,
             CancellationToken cancellationToken = default);
+        Task<List<NearbyVenueDto>> SearchVenuesAsync(
+            double latitude,
+            double longitude,
+            double radiusInMeters,
+            int? categoryId,
+            byte? minPriceLevel,
+            byte? maxPriceLevel,
+            bool? openNow,
+            CancellationToken cancellationToken = default);
+
 
     }
+
 }

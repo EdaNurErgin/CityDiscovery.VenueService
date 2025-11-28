@@ -2,10 +2,6 @@
 
 namespace CityDiscovery.Venues.Domain.Entities;
 
-/// <summary>
-/// Mekana ait etkinlikler (concert, workshop, vb.).
-/// DB: Events
-/// </summary>
 public sealed class Event : Entity, IAuditableEntity
 {
     public Guid VenueId { get; private set; }
@@ -33,9 +29,6 @@ public sealed class Event : Entity, IAuditableEntity
         DateTime? endDate,
         string? imageUrl)
     {
-        if (endDate.HasValue && endDate.Value < startDate)
-            throw new ArgumentException("EndDate cannot be earlier than StartDate.", nameof(endDate));
-
         VenueId = venueId;
         Title = title;
         Description = description;
@@ -60,14 +53,16 @@ public sealed class Event : Entity, IAuditableEntity
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title is required.", nameof(title));
 
+        if (endDate.HasValue && endDate.Value < startDate)
+            throw new ArgumentException("EndDate cannot be earlier than StartDate.", nameof(endDate));
+
         return new Event(
             venueId,
             title.Trim(),
             description?.Trim(),
             startDate,
             endDate,
-            imageUrl?.Trim()
-        );
+            imageUrl?.Trim());
     }
 
     public void Update(
@@ -93,7 +88,7 @@ public sealed class Event : Entity, IAuditableEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Cancel()
+    public void Deactivate()
     {
         if (IsActive)
         {
@@ -101,4 +96,11 @@ public sealed class Event : Entity, IAuditableEntity
             UpdatedAt = DateTime.UtcNow;
         }
     }
+
+    public void UpdateImage(string? imageUrl)
+    {
+        ImageUrl = imageUrl?.Trim();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
 }

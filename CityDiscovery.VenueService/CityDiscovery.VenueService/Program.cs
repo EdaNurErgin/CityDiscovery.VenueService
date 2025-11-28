@@ -1,5 +1,9 @@
 using CityDiscovery.Venues.Application.DependencyInjection;
+using CityDiscovery.Venues.Application.Interfaces.Services;
 using CityDiscovery.Venues.Infrastructure.DependencyInjection;
+using CityDiscovery.Venues.Infrastructure.Services;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders;
 
 namespace CityDiscovery.VenueService
 {
@@ -8,6 +12,9 @@ namespace CityDiscovery.VenueService
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.Configure<LocalFileStorageOptions>(
+                builder.Configuration.GetSection("LocalFileStorage"));
+            builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
             builder.Services.AddVenueApplication();
             // Add services to the container.
@@ -30,6 +37,12 @@ namespace CityDiscovery.VenueService
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+        builder.Configuration["LocalFileStorage:RootPath"]!),
+                RequestPath = "/uploads"
+            });
 
 
             app.MapControllers();

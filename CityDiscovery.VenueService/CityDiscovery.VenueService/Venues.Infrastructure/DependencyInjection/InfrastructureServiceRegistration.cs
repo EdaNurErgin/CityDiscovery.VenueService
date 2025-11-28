@@ -2,7 +2,6 @@
 using CityDiscovery.Venues.Infrastructure.Data.Context;
 using CityDiscovery.Venues.Infrastructure.Persistence.Repositories;
 using CityDiscovery.Venues.Infrastructure.Persistence.Repository;
-using CityDiscovery.VenueService.Venues.Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,9 +31,13 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IVenueRepository, VenueRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IVenueCategoryRepository, VenueCategoryRepository>();
+        services.AddScoped<IVenuePhotoRepository, VenuePhotoRepository>();
+        services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
+        services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
 
-        //services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
-        //services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+
+
 
         return services;
     }
