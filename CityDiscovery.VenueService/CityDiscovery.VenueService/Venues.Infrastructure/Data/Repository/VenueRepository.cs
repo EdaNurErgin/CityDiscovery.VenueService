@@ -69,6 +69,12 @@ public sealed class VenueRepository : IVenueRepository
         _context.Venues.Update(venue);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task DeleteAsync(Venuex venue, CancellationToken cancellationToken = default)
+    {
+        _context.Venues.Remove(venue);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
     public async Task<List<NearbyVenueDto>> GetNearbyVenuesAsync(
      double latitude,
      double longitude,
@@ -204,6 +210,19 @@ public sealed class VenueRepository : IVenueRepository
     }
 
     
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Venues
+            .AnyAsync(v => v.Id == id, cancellationToken);
+    }
+
+    public async Task<List<Venuex>> GetByIdsAsync(List<Guid> venueIds, CancellationToken cancellationToken = default)
+    {
+        return await _context.Venues
+            .Where(v => venueIds.Contains(v.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     private static bool IsOpenNow(string? openingHoursJson, DateTime nowUtc)
     {
         if (string.IsNullOrWhiteSpace(openingHoursJson))

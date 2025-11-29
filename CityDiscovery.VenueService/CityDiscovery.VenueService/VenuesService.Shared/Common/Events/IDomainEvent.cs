@@ -1,4 +1,4 @@
-﻿namespace CityDiscovery.Venues.Shared.Common.Events;
+﻿namespace VenuesService.Shared.Common.Events;
 
 /// <summary>
 /// Domain içinde kullanılan event'ler için marker interface.

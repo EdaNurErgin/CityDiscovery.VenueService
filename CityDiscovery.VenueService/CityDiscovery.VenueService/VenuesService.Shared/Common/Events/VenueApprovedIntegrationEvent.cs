@@ -1,6 +1,4 @@
-﻿using CityDiscovery.Venues.Shared.Common.Events;
-
-namespace CityDiscovery.Shared.Common.Events.Venue;
+﻿namespace VenuesService.Shared.Common.Events;
 
 public sealed class VenueApprovedIntegrationEvent : IIntegrationEvent
 {

@@ -13,6 +13,7 @@ namespace CityDiscovery.Venues.Application.Interfaces.Repositories
 
         Task AddAsync(Venuex venue, CancellationToken cancellationToken = default);
         Task UpdateAsync(Venuex venue, CancellationToken cancellationToken = default);
+        Task DeleteAsync(Venuex venue, CancellationToken cancellationToken = default);
         Task<List<NearbyVenueDto>> GetNearbyVenuesAsync(
             double latitude,
             double longitude,
@@ -28,6 +29,9 @@ namespace CityDiscovery.Venues.Application.Interfaces.Repositories
             bool? openNow,
             CancellationToken cancellationToken = default);
 
+        Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+
+        Task<List<Venuex>> GetByIdsAsync(List<Guid> venueIds, CancellationToken cancellationToken = default);
 
     }
 

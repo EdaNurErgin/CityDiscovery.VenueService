@@ -1,4 +1,5 @@
-﻿using CityDiscovery.Venues.Shared.Common.Events;
+﻿using CityDiscovery.VenueService.VenuesService.Shared.Common.Events;
+using VenuesService.Shared.Common.Events;
 
 namespace CityDiscovery.Venues.Domain.Common;
 

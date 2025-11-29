@@ -1,4 +1,4 @@
-﻿namespace CityDiscovery.Venues.Shared.Common.Events;
+﻿namespace VenuesService.Shared.Common.Events;
 
 /// <summary>
 /// Mikroservisler arası iletişim (RabbitMQ, MassTransit vs.) için kullanılan event'ler.
