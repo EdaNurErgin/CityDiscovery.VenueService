@@ -18,6 +18,9 @@ public class VenueDbContext : DbContext
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<Country> Countries => Set<Country>();
+    public DbSet<City> Cities => Set<City>();
+    public DbSet<District> Districts => Set<District>();
 
 
 
