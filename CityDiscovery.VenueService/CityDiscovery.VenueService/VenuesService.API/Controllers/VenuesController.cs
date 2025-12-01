@@ -5,6 +5,7 @@ using CityDiscovery.Venues.Application.Features.Venues.Commands.CreateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeactivateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeleteVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenueBasicInfo;
+using CityDiscovery.Venues.Application.Features.Venues.Commands.UploadVenueProfilePicture;
 using CityDiscovery.Venues.Application.Features.Venues.Queries.GetNearbyVenues;
 using CityDiscovery.Venues.Application.Features.Venues.Queries.SearchVenues;
 using CityDiscovery.Venues.Application.Interfaces.Repositories;
@@ -132,6 +133,30 @@ public class VenuesController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = venueId }, new { id = venueId });
 
+    }
+
+    /// <summary>
+    /// Mekanın profil fotoğrafını günceller (Sadece Owner)
+    /// </summary>
+    [HttpPost("{id:guid}/profile-picture")]
+    [Authorize(Policy = "OwnerOnly")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadProfilePicture(
+        Guid id,
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("File is required.");
+
+        var command = new UploadVenueProfilePictureCommand(
+            id,
+            file.OpenReadStream(),
+            file.FileName,
+            file.ContentType ?? "application/octet-stream");
+
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -428,6 +453,7 @@ public class VenuesController : ControllerBase
             venue.Phone,
             venue.WebsiteUrl,
             PriceLevel = venue.PriceLevel?.Value,
+            venue.ProfilePictureUrl,
             venue.OpeningHoursJson,
             venue.OwnerUserId,
             Location = new

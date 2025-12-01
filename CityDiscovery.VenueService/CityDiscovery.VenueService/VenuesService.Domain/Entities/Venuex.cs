@@ -16,7 +16,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
 
     public Guid OwnerUserId { get; private set; }
-
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
     public string? AddressText { get; private set; }
@@ -24,7 +23,7 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     public string? WebsiteUrl { get; private set; }
 
     public PriceLevel? PriceLevel { get; private set; }
-
+    public string? ProfilePictureUrl { get; private set; }
     /// <summary>
     /// Açılış saatleri JSON string olarak tutulacak.
     /// Örn: {"Mon":"09:00-22:00", "Tue":"09:00-22:00", ...}
@@ -50,7 +49,7 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     private readonly List<VenueCategory> _venueCategories = new();
     public IReadOnlyCollection<VenueCategory> VenueCategories => _venueCategories.AsReadOnly();
 
-    // Fotoğraflar
+    // Fotograflar
     private readonly List<VenuePhoto> _photos = new();
     public IReadOnlyCollection<VenuePhoto> Photos => _photos.AsReadOnly();
 
@@ -126,6 +125,8 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         );
     }
 
+
+
     #region Behavior
 
     public void UpdateBasicInfo(
@@ -195,6 +196,13 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     public void SetAddress(VenueAddress address)
     {
         Address = address ?? throw new ArgumentNullException(nameof(address));
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    // Profil fotoğrafını güncellemek için domain metodu
+    public void UpdateProfilePicture(string? pictureUrl)
+    {
+        ProfilePictureUrl = pictureUrl;
         UpdatedAt = DateTime.UtcNow;
     }
 
