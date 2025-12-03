@@ -526,4 +526,21 @@ public class VenuesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Mekanın sahibinin ID'sini döner (Diğer servisler için - Public endpoint)
+    /// </summary>
+    [HttpGet("{id:guid}/owner")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVenueOwner(Guid id, CancellationToken cancellationToken)
+    {
+        var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
+
+        if (venue is null)
+            return NotFound("Mekan bulunamadı.");
+
+        return Ok(venue.OwnerUserId);
+    }
+
 }
