@@ -1,4 +1,5 @@
 ﻿using CityDiscovery.Venues.Infrastructure.MessageBus.Consumers;
+using CityDiscovery.VenueService.Venues.Infrastructure.MessageBus.Consumers;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,8 @@ public static class MessageBusConfiguration
             // Consumers
             x.AddConsumer<UserDeletedEventConsumer>();
             x.AddConsumer<UserRoleChangedEventConsumer>();
-
+            x.AddConsumer<UserDeletedEventConsumer>();
+            x.AddConsumer<VenueRatingUpdatedConsumer>();
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitMqConfig = configuration.GetSection("RabbitMq");

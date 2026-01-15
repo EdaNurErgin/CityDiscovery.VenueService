@@ -45,6 +45,9 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     // 1:1 adres
     public VenueAddress? Address { get; private set; }
 
+    public double AverageRating { get; set; } = 0;
+    public int ReviewCount { get; set; } = 0;
+
     // Venue ↔ Category (M:N, join tablo: VenueCategory)
     private readonly List<VenueCategory> _venueCategories = new();
     public IReadOnlyCollection<VenueCategory> VenueCategories => _venueCategories.AsReadOnly();
