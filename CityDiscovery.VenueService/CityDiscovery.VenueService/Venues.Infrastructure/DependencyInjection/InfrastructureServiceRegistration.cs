@@ -28,6 +28,10 @@ public static class InfrastructureServiceRegistration
                 {
                     sql.MigrationsAssembly(typeof(VenueDbContext).Assembly.FullName);
                     sql.UseNetTopologySuite();
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
                 });
         });
 
