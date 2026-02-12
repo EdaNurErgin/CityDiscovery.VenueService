@@ -17,19 +17,29 @@ public static class MessageBusConfiguration
             // Consumers
             x.AddConsumer<UserDeletedEventConsumer>();
             x.AddConsumer<UserRoleChangedEventConsumer>();
-            x.AddConsumer<UserDeletedEventConsumer>();
             x.AddConsumer<VenueRatingUpdatedConsumer>();
+            x.AddConsumer<ContentRemovedConsumer>();
+
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitMqConfig = configuration.GetSection("RabbitMq");
 
-                cfg.Host(rabbitMqConfig["Host"], rabbitMqConfig["VirtualHost"], h =>
+                // VirtualHost ayarına dikkat! Eğer boş gelirse "/" kullanılmalı.
+                var vHost = rabbitMqConfig["VirtualHost"];
+                if (string.IsNullOrEmpty(vHost)) vHost = "/";
+
+                cfg.Host(rabbitMqConfig["Host"], vHost, h =>
                 {
                     h.Username(rabbitMqConfig["Username"] ?? "guest");
                     h.Password(rabbitMqConfig["Password"] ?? "guest");
                 });
 
-                // Consumer endpoints
+                // --- ÖNEMLİ EKLENTİ: 1 ---
+                // Manuel tanımladıklarınızın dışında kalan her şeyi (Publisher ayarları dahil) otomatik yapılandırır.
+                cfg.ConfigureEndpoints(context);
+                // --------------------------
+
+                // Manuel endpoint tanımlarınız (Bunlar kalabilir, ConfigureEndpoints bunları ezmez)
                 cfg.ReceiveEndpoint("venue-service-user-deleted", e =>
                 {
                     e.ConfigureConsumer<UserDeletedEventConsumer>(context);
@@ -39,6 +49,16 @@ public static class MessageBusConfiguration
                 {
                     e.ConfigureConsumer<UserRoleChangedEventConsumer>(context);
                 });
+
+                cfg.ReceiveEndpoint("venue-service-rating-updated", e =>
+                {
+                    e.ConfigureConsumer<VenueRatingUpdatedConsumer>(context);
+                });
+                cfg.ReceiveEndpoint("content-removed-venue-queue", e =>
+                {
+                    e.ConfigureConsumer<ContentRemovedConsumer>(context);
+                });
+                cfg.ConfigureEndpoints(context);
             });
         });
 

@@ -31,6 +31,14 @@ public sealed class DeleteVenueCommandHandler : IRequestHandler<DeleteVenueComma
         if (venue is null)
             throw new KeyNotFoundException($"Venue not found with id: {request.VenueId}");
 
+        if (venue.OwnerUserId != request.UserId && request.UserRole != "Admin")
+        {
+            _logger.LogWarning("Unauthorized delete attempt. User: {UserId}, Role: {Role}, VenueOwner: {OwnerId}",
+                request.UserId, request.UserRole, venue.OwnerUserId);
+
+            throw new UnauthorizedAccessException("Bu mekanı silmeye yetkiniz yok. Sadece mekan sahibi veya Admin silebilir.");
+        }
+
         var venueName = venue.Name;
         var venueId = request.VenueId;
 

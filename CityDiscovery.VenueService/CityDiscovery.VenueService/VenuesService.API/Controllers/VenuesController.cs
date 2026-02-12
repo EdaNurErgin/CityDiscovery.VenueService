@@ -277,39 +277,51 @@ public class VenuesController : ControllerBase
     /// <response code="401">Yetkisiz erişim</response>
     /// <response code="403">Bu işlem için yetkiniz yok (Başkasının mekanını silemezsiniz)</response>
     /// <response code="404">Mekan bulunamadı</response>
+    /// <summary>
+    /// Mekanı siler (Sadece Admin veya Owner)
+    /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = "OwnerOnly")]
+    [Authorize] // DİKKAT: "OwnerOnly" politikasını kaldırdık, çünkü Admin de girebilmeli
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteVenue(Guid id, CancellationToken cancellationToken)
     {
-        // Owner değilse ek kontrol (Admin olabilir)
-        if (!_currentUser.IsAdmin)
-        {
-            var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
+        // 1. Kullanıcı bilgilerini al (CurrentUser servisinden veya User.Claims'den)
+        // Eğer _currentUser servisin varsa oradan da alabilirsin.
+        var userId = _currentUser.UserId ?? Guid.Empty;
 
-            if (venue == null)
-                return NotFound();
+        // Rolü string olarak almamız lazım (Handler'a göndermek için)
+        // _currentUser.Role diye bir property yoksa, Claim'den okuyabilirsin:
+        var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        // Veya _currentUser.IsAdmin true ise "Admin" gönder:
+        if (_currentUser.IsAdmin) userRole = "Admin";
 
-            if (!_currentUser.UserId.HasValue || venue.OwnerUserId != _currentUser.UserId.Value)
-                return Forbid();
-        }
 
         try
         {
-            var command = new DeleteVenueCommand(id);
+            // 2. Command'i YENİ formatıyla oluştur (3 parametre)
+            var command = new DeleteVenueCommand(id, userId, userRole);
+
+            // 3. Handler'a gönder (Bütün kontroller orada yapılacak)
             await _mediator.Send(command, cancellationToken);
+
             return NoContent();
         }
         catch (KeyNotFoundException ex)
         {
+            // Handler "Mekan bulunamadı" derse 404 dön
             return NotFound(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Handler "Yetkin yok" derse 403 dön
+            return StatusCode(403, new { error = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "An error occurred while deleting the venue.", details = ex.Message });
+            return StatusCode(500, new { error = "Bir hata oluştu.", details = ex.Message });
         }
     }
 
@@ -544,3 +556,40 @@ public class VenuesController : ControllerBase
     }
 
 }
+
+
+//[HttpDelete("{id:guid}")]
+//[Authorize(Policy = "OwnerOnly")]
+//[ProducesResponseType(StatusCodes.Status204NoContent)]
+//[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+//[ProducesResponseType(StatusCodes.Status403Forbidden)]
+//[ProducesResponseType(StatusCodes.Status404NotFound)]
+//public async Task<IActionResult> DeleteVenue(Guid id, CancellationToken cancellationToken)
+//{
+//    // Owner değilse ek kontrol (Admin olabilir)
+//    if (!_currentUser.IsAdmin)
+//    {
+//        var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
+
+//        if (venue == null)
+//            return NotFound();
+
+//        if (!_currentUser.UserId.HasValue || venue.OwnerUserId != _currentUser.UserId.Value)
+//            return Forbid();
+//    }
+
+//    try
+//    {
+//        var command = new DeleteVenueCommand(id);
+//        await _mediator.Send(command, cancellationToken);
+//        return NoContent();
+//    }
+//    catch (KeyNotFoundException ex)
+//    {
+//        return NotFound(new { error = ex.Message });
+//    }
+//    catch (Exception ex)
+//    {
+//        return StatusCode(500, new { error = "An error occurred while deleting the venue.", details = ex.Message });
+//    }
+//}

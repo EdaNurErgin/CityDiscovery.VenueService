@@ -1,5 +1,7 @@
 ﻿using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using CityDiscovery.Venues.Domain.ValueObjects;
+using CityDiscovery.Venues.Application.Interfaces.MessageBus;
+using CityDiscovery.VenuesService.Shared.Common.Events.Venue;
 using MediatR;
 
 namespace CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenueBasicInfo;
@@ -8,10 +10,14 @@ public sealed class UpdateVenueBasicInfoCommandHandler
     : IRequestHandler<UpdateVenueBasicInfoCommand, Unit>
 {
     private readonly IVenueRepository _venueRepository;
+    private readonly IEventPublisher _eventPublisher;
 
-    public UpdateVenueBasicInfoCommandHandler(IVenueRepository venueRepository)
+    public UpdateVenueBasicInfoCommandHandler(
+        IVenueRepository venueRepository,
+        IEventPublisher eventPublisher)
     {
         _venueRepository = venueRepository;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<Unit> Handle(UpdateVenueBasicInfoCommand request, CancellationToken cancellationToken)
@@ -25,7 +31,6 @@ public sealed class UpdateVenueBasicInfoCommandHandler
             ? PriceLevel.Create(request.PriceLevel.Value)
             : null;
 
-        // GeoLocation yok artık → direkt latitude/longitude veriyoruz
         venue.UpdateBasicInfo(
             request.Name,
             request.Description,
@@ -39,6 +44,22 @@ public sealed class UpdateVenueBasicInfoCommandHandler
         );
 
         await _venueRepository.UpdateAsync(venue, cancellationToken);
+
+        // --- DÜZELTİLEN KISIM ---
+
+        // HATA BURADAYDI: venue.Photos içinde IsProfilePicture aramaya gerek yok.
+        // Entity'nizde 'ProfilePictureUrl' alanı zaten ana tabloda tutuluyor.
+
+        var integrationEvent = new VenueUpdatedEvent
+        {
+            VenueId = venue.Id,
+            Name = venue.Name,
+            Description = venue.Description ?? string.Empty, // Null gelirse boş string gönder
+            ImageUrl = venue.ProfilePictureUrl ?? string.Empty // Direkt entity'den alıyoruz
+        };
+
+        await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
+        // -------------------------
 
         return Unit.Value;
     }

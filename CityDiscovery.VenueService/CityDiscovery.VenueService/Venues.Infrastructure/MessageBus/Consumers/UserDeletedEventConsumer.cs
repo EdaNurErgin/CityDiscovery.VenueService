@@ -1,5 +1,6 @@
 ﻿using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using CityDiscovery.Venues.Shared.Common.Events.Identity;
+using IdentityService.Shared.MessageBus.Identity;
 using MassTransit;
 
 namespace CityDiscovery.Venues.Infrastructure.MessageBus.Consumers;

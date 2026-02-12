@@ -1,7 +1,7 @@
 ﻿using CityDiscovery.Venues.Shared.Common.Events;
 using VenuesService.Shared.Common.Events;
 
-namespace CityDiscovery.Venues.Shared.Common.Events.Identity;
+namespace IdentityService.Shared.MessageBus.Identity;
 
 /// <summary>
 /// Identity Service'den yayınlanır.
