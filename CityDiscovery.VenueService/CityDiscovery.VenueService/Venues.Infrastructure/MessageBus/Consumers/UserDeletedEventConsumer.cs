@@ -1,33 +1,40 @@
-﻿using CityDiscovery.Venues.Application.Interfaces.Repositories;
-using CityDiscovery.Venues.Shared.Common.Events.Identity;
+﻿using MassTransit;
+using Microsoft.Extensions.Logging;
+using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using IdentityService.Shared.MessageBus.Identity;
-using MassTransit;
 
 namespace CityDiscovery.Venues.Infrastructure.MessageBus.Consumers;
 
-/// <summary>
-/// Identity Service'den UserDeletedEvent geldiğinde,
-/// eğer bu user Owner ise mekanını deaktif et.
-/// </summary>
 public sealed class UserDeletedEventConsumer : IConsumer<UserDeletedEvent>
 {
     private readonly IVenueRepository _venueRepository;
+    private readonly ILogger<UserDeletedEventConsumer> _logger;
 
-    public UserDeletedEventConsumer(IVenueRepository venueRepository)
+    public UserDeletedEventConsumer(IVenueRepository venueRepository, ILogger<UserDeletedEventConsumer> logger)
     {
         _venueRepository = venueRepository;
+        _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<UserDeletedEvent> context)
     {
         var userId = context.Message.UserId;
+        _logger.LogInformation("UserDeletedEvent received for User ID: {UserId}. Deactivating owned venues...", userId);
 
-        var venue = await _venueRepository.GetByOwnerIdAsync(userId, context.CancellationToken);
-
-        if (venue is not null)
+        try
         {
-            venue.Deactivate();
-            await _venueRepository.UpdateAsync(venue, context.CancellationToken);
+            
+            // Tek tek çekip update etmek yerine, Repository'deki toplu silme metodunu çağırıyoruz.
+            // Bu metot kullanıcının 1 tane de olsa 10 tane de olsa mekanını bulup kapatır.
+            await _venueRepository.DeactivateVenuesByOwnerAsync(userId);
+
+            _logger.LogInformation("Deactivation process completed for Owner {UserId}.", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while deactivating venues for User ID: {UserId}", userId);
+            // Hata durumunda kuyruğa geri bırakmak istersen:
+            // throw; 
         }
     }
 }

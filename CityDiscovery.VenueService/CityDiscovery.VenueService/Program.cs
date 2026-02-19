@@ -1,15 +1,16 @@
 using CityDiscovery.Venues.Application.DependencyInjection;
 using CityDiscovery.Venues.Application.Interfaces.Services;
+using CityDiscovery.Venues.Infrastructure.Data.Context;
 using CityDiscovery.Venues.Infrastructure.DependencyInjection;
+using CityDiscovery.Venues.Infrastructure.MessageBus;
 using CityDiscovery.Venues.Infrastructure.Middleware;
 using CityDiscovery.Venues.Infrastructure.Security;
 using CityDiscovery.Venues.Infrastructure.Services;
-using CityDiscovery.Venues.Infrastructure.Data.Context;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,7 @@ builder.Services.AddScoped<IAuthorizationHandler, VenueOwnerAuthorizationHandler
 
 builder.Services.AddVenueApplication();
 builder.Services.AddVenueInfrastructure(builder.Configuration);
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

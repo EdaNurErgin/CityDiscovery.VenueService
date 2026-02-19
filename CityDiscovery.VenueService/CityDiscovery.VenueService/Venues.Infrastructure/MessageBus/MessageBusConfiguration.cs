@@ -1,8 +1,7 @@
 ﻿using CityDiscovery.Venues.Infrastructure.MessageBus.Consumers;
 using CityDiscovery.VenueService.Venues.Infrastructure.MessageBus.Consumers;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+
 
 namespace CityDiscovery.Venues.Infrastructure.MessageBus;
 
@@ -20,11 +19,11 @@ public static class MessageBusConfiguration
             x.AddConsumer<VenueRatingUpdatedConsumer>();
             x.AddConsumer<ContentRemovedConsumer>();
 
+            x.SetKebabCaseEndpointNameFormatter(); // İsimlendirme standardı
+
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitMqConfig = configuration.GetSection("RabbitMq");
-
-                // VirtualHost ayarına dikkat! Eğer boş gelirse "/" kullanılmalı.
                 var vHost = rabbitMqConfig["VirtualHost"];
                 if (string.IsNullOrEmpty(vHost)) vHost = "/";
 
@@ -34,30 +33,37 @@ public static class MessageBusConfiguration
                     h.Password(rabbitMqConfig["Password"] ?? "guest");
                 });
 
-                // --- ÖNEMLİ EKLENTİ: 1 ---
-                // Manuel tanımladıklarınızın dışında kalan her şeyi (Publisher ayarları dahil) otomatik yapılandırır.
-                cfg.ConfigureEndpoints(context);
-                // --------------------------
+                // --- 1. Identity Servisinden Gelenler (BIND ŞART!) ---
 
-                // Manuel endpoint tanımlarınız (Bunlar kalabilir, ConfigureEndpoints bunları ezmez)
+                // User Silindiğinde:
                 cfg.ReceiveEndpoint("venue-service-user-deleted", e =>
                 {
+                    // Identity'nin exchange ismine zorla bağlıyoruz.
+                    e.Bind("IdentityService.Shared.MessageBus.Identity:UserDeletedEvent");
                     e.ConfigureConsumer<UserDeletedEventConsumer>(context);
                 });
 
+                // Rol Değiştiğinde:
                 cfg.ReceiveEndpoint("venue-service-user-role-changed", e =>
                 {
+                    // Bunu da Identity'ye bağlamak iyi olur
+                    e.Bind("IdentityService.Shared.MessageBus.Identity:UserRoleChangedEvent");
                     e.ConfigureConsumer<UserRoleChangedEventConsumer>(context);
                 });
+
+                // --- 2. Kendi İçindeki Olaylar (Bind şart değil ama manuel isim verdin) ---
 
                 cfg.ReceiveEndpoint("venue-service-rating-updated", e =>
                 {
                     e.ConfigureConsumer<VenueRatingUpdatedConsumer>(context);
                 });
+
                 cfg.ReceiveEndpoint("content-removed-venue-queue", e =>
                 {
                     e.ConfigureConsumer<ContentRemovedConsumer>(context);
                 });
+
+                // --- 3. Geriye Kalan Her Şey İçin Otomatik Yapılandırma ---
                 cfg.ConfigureEndpoints(context);
             });
         });

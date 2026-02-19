@@ -65,6 +65,11 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     public IReadOnlyCollection<Event> Events => _events.AsReadOnly();
 
     private Venuex() { } // EF için
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     private Venuex(
         Guid ownerUserId,
@@ -187,14 +192,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         }
     }
 
-    public void Deactivate()
-    {
-        if (IsActive)
-        {
-            IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
-        }
-    }
 
     public void SetAddress(VenueAddress address)
     {

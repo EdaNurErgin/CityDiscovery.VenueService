@@ -32,6 +32,7 @@ namespace CityDiscovery.Venues.Application.Interfaces.Repositories
         Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
 
         Task<List<Venuex>> GetByIdsAsync(List<Guid> venueIds, CancellationToken cancellationToken = default);
+        Task DeactivateVenuesByOwnerAsync(Guid ownerId);
 
     }
 

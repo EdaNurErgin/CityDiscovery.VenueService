@@ -260,6 +260,33 @@ public sealed class VenueRepository : IVenueRepository
         }
     }
 
+    public async Task DeactivateVenuesByOwnerAsync(Guid ownerId)
+    {
+        // 1. Kullanıcıya ait aktif mekanları bul
+        var venues = await _context.Venues
+            .Where(v => v.OwnerUserId == ownerId && v.IsActive)
+            .ToListAsync();
+
+        if (venues.Any())
+        {
+            // 2. Hepsini pasife çek (Artık property set etmek yerine metot çağırıyoruz)
+            foreach (var venue in venues)
+            {
+                // ESKİSİ (Hata veren):
+                // venue.IsActive = false;
+                // venue.UpdatedAt = DateTime.UtcNow;
+
+                // YENİSİ (Doğru olan):
+                venue.Deactivate();
+            }
+
+            // 3. Kaydet
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"[VenueRepository] Owner {ownerId} silindiği için {venues.Count} mekan pasife çekildi.");
+        }
+    }
+
 
 
 
