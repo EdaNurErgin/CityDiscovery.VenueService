@@ -5,13 +5,13 @@ using MassTransit;
 
 namespace CityDiscovery.VenueService.Venues.Infrastructure.MessageBus.Consumers
 {
-    // 1. DÜZELTME: ": IConsumer<ContentRemovedEvent>" eklendi
+    //  IConsumer<ContentRemovedEvent>" eklendi
     public class ContentRemovedConsumer : IConsumer<ContentRemovedEvent>
     {
-        // 2. DÜZELTME: Context değişkeni tanımlandı
+        // Context değişkeni tanımlandı
         private readonly VenueDbContext _context;
 
-        // 3. DÜZELTME: Constructor (Yapıcı Metot) eklendi
+        // Constructor (Yapıcı Metot) eklendi
         public ContentRemovedConsumer(VenueDbContext context)
         {
             _context = context;
@@ -21,10 +21,10 @@ namespace CityDiscovery.VenueService.Venues.Infrastructure.MessageBus.Consumers
         {
             var message = context.Message;
 
-            // Sadece Mekan silme işi burada kaldı:
+            // Mekan silme  
             if (message.ContentType == "Venue")
             {
-                // Artık _context hata vermez
+               
                 var venue = await _context.Venues.FindAsync(message.ContentId);
 
                 if (venue != null)
