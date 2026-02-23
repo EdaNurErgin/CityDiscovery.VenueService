@@ -137,6 +137,13 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
 
     #region Behavior
 
+    public void UpdatePriceLevel(byte priceLevelValue)
+    {
+        // PriceLevel.Create() içerisinde 1-5 arası limit kontrolü zaten yapılıyor.
+        PriceLevel = PriceLevel.Create(priceLevelValue);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void UpdateBasicInfo(
         string name,
         string? description,
@@ -233,6 +240,7 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         _events.Add(@event);
         UpdatedAt = DateTime.UtcNow;
     }
+
 
     #endregion
 }

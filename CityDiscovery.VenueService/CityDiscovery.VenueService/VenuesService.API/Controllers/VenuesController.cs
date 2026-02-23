@@ -5,6 +5,7 @@ using CityDiscovery.Venues.Application.Features.Venues.Commands.CreateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeactivateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeleteVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenueBasicInfo;
+using CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenuePriceLevel;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UploadVenueProfilePicture;
 using CityDiscovery.Venues.Application.Features.Venues.Queries.GetNearbyVenues;
 using CityDiscovery.Venues.Application.Features.Venues.Queries.SearchVenues;
@@ -554,42 +555,39 @@ public class VenuesController : ControllerBase
 
         return Ok(venue.OwnerUserId);
     }
+    /// <summary>
+    /// Mekanın fiyat seviyesini (1-5 arası) günceller (Sadece Owner veya Admin)
+    /// </summary>
+    [HttpPut("{id:guid}/price-level")]
+    [Authorize(Policy = "OwnerOnly")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePriceLevel(
+        Guid id,
+        [FromBody] UpdateVenuePriceLevelRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Yetki kontrolü (Admin değilse sadece kendi mekanını güncelleyebilir)
+        if (!_currentUser.IsAdmin)
+        {
+            var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
+
+            if (venue == null)
+                return NotFound();
+
+            if (!_currentUser.UserId.HasValue || venue.OwnerUserId != _currentUser.UserId.Value)
+                return Forbid();
+        }
+
+        var command = new UpdateVenuePriceLevelCommand(id, request.PriceLevel);
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
 
 }
 
 
-//[HttpDelete("{id:guid}")]
-//[Authorize(Policy = "OwnerOnly")]
-//[ProducesResponseType(StatusCodes.Status204NoContent)]
-//[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-//[ProducesResponseType(StatusCodes.Status403Forbidden)]
-//[ProducesResponseType(StatusCodes.Status404NotFound)]
-//public async Task<IActionResult> DeleteVenue(Guid id, CancellationToken cancellationToken)
-//{
-//    // Owner değilse ek kontrol (Admin olabilir)
-//    if (!_currentUser.IsAdmin)
-//    {
-//        var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
-
-//        if (venue == null)
-//            return NotFound();
-
-//        if (!_currentUser.UserId.HasValue || venue.OwnerUserId != _currentUser.UserId.Value)
-//            return Forbid();
-//    }
-
-//    try
-//    {
-//        var command = new DeleteVenueCommand(id);
-//        await _mediator.Send(command, cancellationToken);
-//        return NoContent();
-//    }
-//    catch (KeyNotFoundException ex)
-//    {
-//        return NotFound(new { error = ex.Message });
-//    }
-//    catch (Exception ex)
-//    {
-//        return StatusCode(500, new { error = "An error occurred while deleting the venue.", details = ex.Message });
-//    }
-//}
