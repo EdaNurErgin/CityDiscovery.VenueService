@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    
+      - "15672:15672" 
+    environment:
+      RABBITMQ_DEFAULT_USER: guest  
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Eda12345!
+      - MSSQL_PID=Developer
+    ports: ["1433:1433"]
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Eda12345!", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false 
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" 
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+  
+  venue:
+    build: 
+      context: .
+      dockerfile: CityDiscovery.VenueService/Dockerfile
+    container_name: venue-service
+    ports: ["5002:80"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mssql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=mssql;Database=Discovery_VenueDb;User Id=sa;Password=Eda12345!;TrustServerCertificate=True;
+      - Jwt__Issuer=identity
+      - Jwt__Audience=citydiscovery
+      - Jwt__Key=pLw3V!zJg7^2qK0xD8mR4tY1uC6bN9fQ5sH3kL0wX2yZ8rT6vB1nM4pQ7sU2dE9
+      - RabbitMq__Host=rabbitmq
+      - ElasticsearchSettings__Uri=http://elasticsearch:9200
+      - ElasticsearchSettings__DefaultIndex=venues
+
+ 
+
+volumes:
+  mssql-data:

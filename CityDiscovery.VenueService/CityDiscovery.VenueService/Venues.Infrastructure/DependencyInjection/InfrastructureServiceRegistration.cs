@@ -6,6 +6,8 @@ using CityDiscovery.Venues.Infrastructure.ExternalServices;
 using CityDiscovery.Venues.Infrastructure.MessageBus;
 using CityDiscovery.Venues.Infrastructure.Persistence.Repositories;
 using CityDiscovery.Venues.Infrastructure.Persistence.Repository;
+using CityDiscovery.VenueService.VenuesService.Application.Interfaces.Services;
+using CityDiscovery.VenueService.VenuesService.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +45,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
         services.AddScoped<IMenuItemRepository, MenuItemRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IVenueSearchService, VenueSearchService>();
 
         // External Services (HTTP Clients)
         services.AddHttpClient<IIdentityServiceClient, IdentityServiceClient>();
