@@ -45,7 +45,6 @@ public sealed class ApproveVenueCommandHandler : IRequestHandler<ApproveVenueCom
             {
                 Id = venue.Id,
                 Name = venue.Name,
-                AddressText = venue.AddressText,
                 PriceLevel = venue.PriceLevel?.Value, // PriceLevel bir ValueObject ise değerini alıyoruz
                 Location = new LocationDto
                 {

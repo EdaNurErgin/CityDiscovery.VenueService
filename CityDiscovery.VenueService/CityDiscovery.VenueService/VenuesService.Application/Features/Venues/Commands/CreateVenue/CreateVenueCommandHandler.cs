@@ -77,7 +77,6 @@ public sealed class CreateVenueCommandHandler : IRequestHandler<CreateVenueComma
             request.OwnerUserId,
             request.Name,
             request.Description,
-            request.AddressText,
             request.Phone,
             request.WebsiteUrl,
             price,

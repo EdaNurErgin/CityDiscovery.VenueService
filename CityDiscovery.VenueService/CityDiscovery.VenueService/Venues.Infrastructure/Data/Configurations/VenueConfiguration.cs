@@ -2,8 +2,7 @@
 using CityDiscovery.Venues.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NetTopologySuite.Geometries;
+
 
 namespace CityDiscovery.Venues.Infrastructure.Persistence.Configurations;
 
@@ -24,9 +23,6 @@ public class VenueConfiguration : IEntityTypeConfiguration<Venuex>
 
         builder.Property(v => v.Description)
             .HasMaxLength(1000);
-
-        builder.Property(v => v.AddressText)
-            .HasMaxLength(400);
 
         builder.Property(v => v.Phone)
             .HasMaxLength(50);

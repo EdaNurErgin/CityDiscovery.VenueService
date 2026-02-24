@@ -18,7 +18,7 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     public Guid OwnerUserId { get; private set; }
     public string Name { get; private set; } = default!;
     public string? Description { get; private set; }
-    public string? AddressText { get; private set; }
+    //public string? AddressText { get; private set; }
     public string? Phone { get; private set; }
     public string? WebsiteUrl { get; private set; }
 
@@ -75,7 +75,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         Guid ownerUserId,
         string name,
         string? description,
-        string? addressText,
         string? phone,
         string? websiteUrl,
         PriceLevel? priceLevel,
@@ -85,7 +84,7 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         OwnerUserId = ownerUserId;
         Name = name;
         Description = description;
-        AddressText = addressText;
+
         Phone = phone;
         WebsiteUrl = websiteUrl;
         PriceLevel = priceLevel;
@@ -103,7 +102,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
         Guid ownerUserId,
         string name,
         string? description,
-        string? addressText,
         string? phone,
         string? websiteUrl,
         PriceLevel? priceLevel,
@@ -124,7 +122,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
             ownerUserId,
             name.Trim(),
             description?.Trim(),
-            addressText?.Trim(),
             phone?.Trim(),
             websiteUrl?.Trim(),
             priceLevel,
@@ -147,7 +144,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
     public void UpdateBasicInfo(
         string name,
         string? description,
-        string? addressText,
         string? phone,
         string? websiteUrl,
         PriceLevel? priceLevel,
@@ -160,7 +156,6 @@ public sealed class Venuex : AggregateRoot, IAuditableEntity
 
         Name = name.Trim();
         Description = description?.Trim();
-        AddressText = addressText?.Trim();
         Phone = phone?.Trim();
         WebsiteUrl = websiteUrl?.Trim();
         PriceLevel = priceLevel;

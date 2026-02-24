@@ -3,12 +3,11 @@ using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using CityDiscovery.Venues.Domain.Entities;
 using CityDiscovery.Venues.Infrastructure.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer.Types;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using System.Globalization;
 using System.Text.Json;
-using CityDiscovery.Venues.Application.Features.Venues.Queries.GetNearbyVenues;
+
 
 
 namespace CityDiscovery.Venues.Infrastructure.Persistence.Repository;
@@ -64,9 +63,36 @@ public sealed class VenueRepository : IVenueRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    //public async Task UpdateAsync(Venuex venue, CancellationToken cancellationToken = default)
+    //{
+    //    //_context.Venues.Update(venue);
+    //    await _context.SaveChangesAsync(cancellationToken);
+    //}
+
     public async Task UpdateAsync(Venuex venue, CancellationToken cancellationToken = default)
     {
-        _context.Venues.Update(venue);
+        // 1. EF Core'un "Guid doluysa UPDATE at" varsayımını eziyoruz.
+        if (venue.Address != null)
+        {
+            var addressEntry = _context.Entry(venue.Address);
+
+            // Adresin ID'si veritabanında gerçekten var mı diye hızlıca kontrol ediyoruz.
+            bool addressExists = await _context.Set<VenueAddress>()
+                .AnyAsync(a => a.Id == venue.Address.Id, cancellationToken);
+
+            if (!addressExists)
+            {
+                // EĞER YOKSA: EF Core'a bu nesnenin YENİ eklendiğini söylüyoruz (INSERT atacak)
+                addressEntry.State = EntityState.Added;
+            }
+            else
+            {
+                // EĞER VARSA: Demek ki gerçekten güncelleniyor (UPDATE atacak)
+                addressEntry.State = EntityState.Modified;
+            }
+        }
+
+        // 2. Mekanın (Venue) kendisinde bir değişiklik varsa (Örn: AddressId dolduysa) o zaten güncellenir.
         await _context.SaveChangesAsync(cancellationToken);
     }
 

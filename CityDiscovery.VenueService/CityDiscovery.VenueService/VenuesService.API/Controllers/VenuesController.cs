@@ -4,6 +4,7 @@ using CityDiscovery.Venues.Application.Features.Venues.Commands.ApproveVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.CreateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeactivateVenue;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.DeleteVenue;
+using CityDiscovery.Venues.Application.Features.Venues.Commands.SetVenueAddress;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenueBasicInfo;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UpdateVenuePriceLevel;
 using CityDiscovery.Venues.Application.Features.Venues.Commands.UploadVenueProfilePicture;
@@ -364,7 +365,7 @@ public class VenuesController : ControllerBase
         {
             Id = venue.Id,
             Name = venue.Name,
-            AddressText = venue.AddressText,
+            //AddressText = venue.AddressText,
             PriceLevel = venue.PriceLevel?.Value,
             Location = new CityDiscovery.VenueService.VenuesService.Shared.Common.DTOs.Venue.LocationDto
             {
@@ -420,7 +421,7 @@ public class VenuesController : ControllerBase
         {
             Id = v.Id,
             Name = v.Name,
-            AddressText = v.AddressText,
+            //AddressText = v.AddressText,
             PriceLevel = v.PriceLevel?.Value,
             Location = new CityDiscovery.VenueService.VenuesService.Shared.Common.DTOs.Venue.LocationDto
             {
@@ -462,7 +463,7 @@ public class VenuesController : ControllerBase
             venue.Id,
             venue.Name,
             venue.Description,
-            venue.AddressText,
+            //venue.AddressText,
             venue.Phone,
             venue.WebsiteUrl,
             PriceLevel = venue.PriceLevel?.Value,
@@ -583,6 +584,50 @@ public class VenuesController : ControllerBase
         }
 
         var command = new UpdateVenuePriceLevelCommand(id, request.PriceLevel);
+        await _mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+
+
+    /// <summary>
+    /// Mekanın ülke, şehir, ilçe ve açık adres bilgilerini günceller/ekler (Sadece Owner veya Admin)
+    /// </summary>
+    [HttpPut("{id:guid}/address")]
+    [Authorize(Policy = "OwnerOnly")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetVenueAddress(
+        Guid id,
+        [FromBody] SetVenueAddressRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Yetki kontrolü (Admin değilse sadece kendi mekanını güncelleyebilir)
+        if (!_currentUser.IsAdmin)
+        {
+            var venue = await _venueRepository.GetByIdAsync(id, cancellationToken);
+
+            if (venue == null)
+                return NotFound();
+
+            if (!_currentUser.UserId.HasValue || venue.OwnerUserId != _currentUser.UserId.Value)
+                return Forbid();
+        }
+
+        var command = new SetVenueAddressCommand(
+            id,
+            request.CountryId,
+            request.CityId,
+            request.DistrictId,
+            request.Neighborhood, 
+            request.Street,       
+            request.BuildingNo,   
+            request.FullAddress
+        );
+
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();

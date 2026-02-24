@@ -8,8 +8,7 @@ public sealed class VenueDto
     public Guid OwnerUserId { get; init; }
     public LocationDto Location { get; init; } = default!;
     public byte? PriceLevel { get; init; }
-    public string? ProfilePictureUrl { get; init; } // Eklendi
-    public string? AddressText { get; init; }
+    public string? ProfilePictureUrl { get; init; } 
     public string? Phone { get; init; }
     public string? WebsiteUrl { get; init; }
     public string? OpeningHoursJson { get; init; }

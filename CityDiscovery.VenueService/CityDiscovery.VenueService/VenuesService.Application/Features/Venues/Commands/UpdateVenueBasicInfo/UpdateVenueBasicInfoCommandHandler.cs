@@ -34,7 +34,6 @@ public sealed class UpdateVenueBasicInfoCommandHandler
         venue.UpdateBasicInfo(
             request.Name,
             request.Description,
-            request.AddressText,
             request.Phone,
             request.WebsiteUrl,
             priceLevel,
@@ -45,17 +44,14 @@ public sealed class UpdateVenueBasicInfoCommandHandler
 
         await _venueRepository.UpdateAsync(venue, cancellationToken);
 
-        // --- DÜZELTİLEN KISIM ---
 
-        // HATA BURADAYDI: venue.Photos içinde IsProfilePicture aramaya gerek yok.
-        // Entity'nizde 'ProfilePictureUrl' alanı zaten ana tabloda tutuluyor.
-
+     
         var integrationEvent = new VenueUpdatedEvent
         {
             VenueId = venue.Id,
             Name = venue.Name,
             Description = venue.Description ?? string.Empty, // Null gelirse boş string gönder
-            ImageUrl = venue.ProfilePictureUrl ?? string.Empty // Direkt entity'den alıyoruz
+            ImageUrl = venue.ProfilePictureUrl ?? string.Empty // Direkt entity'den al
         };
 
         await _eventPublisher.PublishAsync(integrationEvent, cancellationToken);
