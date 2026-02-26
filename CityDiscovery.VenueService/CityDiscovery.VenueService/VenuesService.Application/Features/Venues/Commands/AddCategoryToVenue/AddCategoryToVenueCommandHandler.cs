@@ -1,4 +1,5 @@
 ﻿using CityDiscovery.Venues.Application.Interfaces.Repositories;
+using CityDiscovery.VenueService.VenuesService.Application.Interfaces.Services;
 using MediatR;
 
 namespace CityDiscovery.Venues.Application.Features.Venues.Commands.AddCategoryToVenue;
@@ -9,15 +10,17 @@ public sealed class AddCategoryToVenueCommandHandler
     private readonly IVenueRepository _venueRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IVenueCategoryRepository _venueCategoryRepository;
+    private readonly ICityDiscoveryService _cityDiscoveryService; 
 
     public AddCategoryToVenueCommandHandler(
         IVenueRepository venueRepository,
         ICategoryRepository categoryRepository,
-        IVenueCategoryRepository venueCategoryRepository)
+        IVenueCategoryRepository venueCategoryRepository, ICityDiscoveryService cityDiscoveryService)
     {
         _venueRepository = venueRepository;
         _categoryRepository = categoryRepository;
         _venueCategoryRepository = venueCategoryRepository;
+        _cityDiscoveryService = cityDiscoveryService;
     }
 
     public async Task<Unit> Handle(
@@ -54,6 +57,14 @@ public sealed class AddCategoryToVenueCommandHandler
             request.CategoryId,
             cancellationToken);
 
+
+        var venueForElastic = await _venueRepository.GetVenueWithDetailsAsync(request.VenueId, cancellationToken);
+
+        // Onaylı bir mekan ise, elasticsearch üzerindeki belgesini zenginleştirerek güncelliyoruz
+        if (venueForElastic != null && venueForElastic.IsApproved)
+        {
+            await _cityDiscoveryService.IndexVenueWithDetailsAsync(venueForElastic);
+        }
         return Unit.Value;
     }
 }

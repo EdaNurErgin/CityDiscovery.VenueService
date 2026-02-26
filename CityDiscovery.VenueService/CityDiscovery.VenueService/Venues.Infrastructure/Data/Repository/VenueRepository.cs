@@ -21,30 +21,25 @@ public sealed class VenueRepository : IVenueRepository
         _context = context;
     }
 
-    //public async Task<Venuex?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    //{
-    //    return await _context.Venues
-    //        .Include(v => v.Address)
-    //        .Include(v => v.VenueCategories)
-    //        .Include(v => v.Photos)
-    //        .Include(v => v.MenuCategories)
-    //            .ThenInclude(mc => mc.Items)
-    //        .Include(v => v.Events)
-    //        .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
-    //}
+
+
     public async Task<Venuex?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Venues
             .Include(v => v.Address)
-            .Include(v => v.VenueCategories)      // 🔹 Join tablosu
-                .ThenInclude(vc => vc.Category)   // 🔹 Category navigation’ı da yüklensin
+                .ThenInclude(a => a.Country)    
+            .Include(v => v.Address)
+                .ThenInclude(a => a.City)      
+            .Include(v => v.Address)
+                .ThenInclude(a => a.District)   
+            .Include(v => v.VenueCategories)
+                .ThenInclude(vc => vc.Category)
             .Include(v => v.Photos)
             .Include(v => v.MenuCategories)
                 .ThenInclude(mc => mc.Items)
             .Include(v => v.Events)
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
-
     public async Task<Venuex?> GetByOwnerIdAsync(Guid ownerUserId, CancellationToken cancellationToken = default)
     {
         return await _context.Venues
@@ -63,11 +58,7 @@ public sealed class VenueRepository : IVenueRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    //public async Task UpdateAsync(Venuex venue, CancellationToken cancellationToken = default)
-    //{
-    //    //_context.Venues.Update(venue);
-    //    await _context.SaveChangesAsync(cancellationToken);
-    //}
+
 
     public async Task UpdateAsync(Venuex venue, CancellationToken cancellationToken = default)
     {
@@ -242,12 +233,23 @@ public sealed class VenueRepository : IVenueRepository
             .AnyAsync(v => v.Id == id, cancellationToken);
     }
 
+
     public async Task<List<Venuex>> GetByIdsAsync(List<Guid> venueIds, CancellationToken cancellationToken = default)
     {
         return await _context.Venues
+            .Include(v => v.Address)
+                .ThenInclude(a => a.Country)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.City)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.District)
+            .Include(v => v.VenueCategories)
+                .ThenInclude(vc => vc.Category)
             .Where(v => venueIds.Contains(v.Id))
             .ToListAsync(cancellationToken);
     }
+
+
 
     private static bool IsOpenNow(string? openingHoursJson, DateTime nowUtc)
     {
@@ -298,11 +300,7 @@ public sealed class VenueRepository : IVenueRepository
             // 2. Hepsini pasife çek (Artık property set etmek yerine metot çağırıyoruz)
             foreach (var venue in venues)
             {
-                // ESKİSİ (Hata veren):
-                // venue.IsActive = false;
-                // venue.UpdatedAt = DateTime.UtcNow;
 
-                // YENİSİ (Doğru olan):
                 venue.Deactivate();
             }
 
@@ -313,7 +311,20 @@ public sealed class VenueRepository : IVenueRepository
         }
     }
 
-
-
+    public async Task<Venuex> GetVenueWithDetailsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.Venues
+            .AsNoTracking() //  ChangeTracker'daki eski veriyi değil, DB'deki güncel veriyi zorla çeker.
+            .Include(v => v.Address)
+                .ThenInclude(a => a.Country)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.City)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.District)
+            .Include(v => v.VenueCategories)
+                .ThenInclude(vc => vc.Category)
+            .AsSplitQuery() // Cartesian explosion'ı önler
+            .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+    }
 
 }

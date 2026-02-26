@@ -43,12 +43,6 @@ public sealed class CreateVenueRequest
     [StringLength(1000, ErrorMessage = "Açıklama en fazla 1000 karakter olabilir")]
     public string? Description { get; set; }
 
-    /// <summary>
-    /// Tam adres
-    /// </summary>
-    /// <example>İstiklal Caddesi No:123, Beyoğlu, İstanbul</example>
-    [StringLength(500, ErrorMessage = "Adres en fazla 500 karakter olabilir")]
-    public string? AddressText { get; set; }
 
     /// <summary>
     /// Telefon numarası

@@ -13,71 +13,76 @@ public sealed class ApproveVenueCommandHandler : IRequestHandler<ApproveVenueCom
     private readonly IVenueRepository _venueRepository;
     private readonly IEventPublisher _eventPublisher;
     private readonly IVenueSearchService _venueSearchService;
+    private readonly ICityDiscoveryService _cityDiscoveryService;
 
     public ApproveVenueCommandHandler(
         IVenueRepository venueRepository,
         IEventPublisher eventPublisher,
-        IVenueSearchService venueSearchService) 
+        IVenueSearchService venueSearchService, ICityDiscoveryService cityDiscoveryService)
     {
         _venueRepository = venueRepository;
         _eventPublisher = eventPublisher;
-        _venueSearchService = venueSearchService; 
+        _venueSearchService = venueSearchService;
+        _cityDiscoveryService = cityDiscoveryService;
     }
 
-    public async Task<Unit> Handle(
-        ApproveVenueCommand request,
-        CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ApproveVenueCommand request, CancellationToken cancellationToken)
     {
+        // 1. Mekanı bul
         var venue = await _venueRepository.GetByIdAsync(request.VenueId, cancellationToken);
-
         if (venue is null)
             throw new KeyNotFoundException($"Venue not found with id: {request.VenueId}");
 
-        // Domain davranışı: Onayla
+        // 2. Onayla ve Veritabanını Güncelle
         venue.Approve();
-
         await _venueRepository.UpdateAsync(venue, cancellationToken);
 
-        //  ONAYLANDIKTAN SONRA ELASTICSEARCH'E KAYDET ---
+        
+        //Nesneyi Tüm İlişkileriyle Yeniden Yükle
+        // Update sonrası navigation property'lerin null kalma riskine karşı 
+        // mekanı tekrar 'Include'lar ile tertemiz çekiyoruz.
+        
+        var updatedVenue = await _venueRepository.GetVenueWithDetailsAsync(request.VenueId, cancellationToken);
+        //  ELASTICSEARCH'E KAYDET (Eski ve Yeni Yapı)
         try
         {
+            // Eski arama için temel DTO
             var venueBasicDto = new VenueBasicDto
             {
-                Id = venue.Id,
-                Name = venue.Name,
-                PriceLevel = venue.PriceLevel?.Value, // PriceLevel bir ValueObject ise değerini alıyoruz
+                Id = updatedVenue.Id,
+                Name = updatedVenue.Name,
+                PriceLevel = updatedVenue.PriceLevel?.Value,
                 Location = new LocationDto
                 {
-                    Latitude = venue.Location?.Y ?? 0,   // Y ekseni Latitude'dur
-                    Longitude = venue.Location?.X ?? 0   // X ekseni Longitude'dur
+                    Latitude = updatedVenue.Location?.Y ?? 0,
+                    Longitude = updatedVenue.Location?.X ?? 0
                 }
             };
-
             await _venueSearchService.IndexVenueAsync(venueBasicDto);
-        }
-        catch (Exception)
-        {
-            // Elastic kayıt hatası olsa bile mekan onaylanmış olmalı, hata fırlatmadan calisir
-        }
-        
 
-        // Event yayınla (Notification Service'e bildirim gitmesi için)
-        // Event yayınlama hatası olsa bile venue onaylanmış olmalı
+            // Yeni filtreli arama için ZENGİN model
+            // updatedVenue kullandığımız için Address.City.Name artık dolu gelecek!
+            await _cityDiscoveryService.IndexVenueWithDetailsAsync(updatedVenue);
+        }
+        catch (Exception ex)
+        {
+            // Loglama yapabilirsiniz
+        }
+
+        // 5. Event yayınla
         try
         {
             await _eventPublisher.PublishAsync(new VenueApprovedEvent
             {
-                VenueId = venue.Id,
-                OwnerUserId = venue.OwnerUserId,
-                VenueName = venue.Name,
+                VenueId = updatedVenue.Id,
+                OwnerUserId = updatedVenue.OwnerUserId,
+                VenueName = updatedVenue.Name,
                 ApprovedAt = DateTime.UtcNow
             }, cancellationToken);
         }
-        catch (Exception)
-        {
-            // Event yayınlama hatası olsa bile venue onaylanmış, log'la ama exception fırlatma
-        }
+        catch (Exception) { }
 
         return Unit.Value;
     }
+
 }

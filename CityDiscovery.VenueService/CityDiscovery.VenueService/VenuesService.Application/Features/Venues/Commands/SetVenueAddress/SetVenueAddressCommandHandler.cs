@@ -1,5 +1,6 @@
 ﻿using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using CityDiscovery.Venues.Domain.Entities;
+using CityDiscovery.VenueService.VenuesService.Application.Interfaces.Services;
 using MediatR;
 
 namespace CityDiscovery.Venues.Application.Features.Venues.Commands.SetVenueAddress;
@@ -7,10 +8,12 @@ namespace CityDiscovery.Venues.Application.Features.Venues.Commands.SetVenueAddr
 public sealed class SetVenueAddressCommandHandler : IRequestHandler<SetVenueAddressCommand>
 {
     private readonly IVenueRepository _venueRepository;
+    private readonly ICityDiscoveryService _cityDiscoveryService;
 
-    public SetVenueAddressCommandHandler(IVenueRepository venueRepository)
+    public SetVenueAddressCommandHandler(IVenueRepository venueRepository, ICityDiscoveryService cityDiscoveryService)
     {
         _venueRepository = venueRepository;
+        _cityDiscoveryService = cityDiscoveryService;
     }
 
     public async Task Handle(SetVenueAddressCommand request, CancellationToken cancellationToken)
@@ -30,9 +33,9 @@ public sealed class SetVenueAddressCommandHandler : IRequestHandler<SetVenueAddr
                 countryId: request.CountryId,
                 cityId: request.CityId,
                 districtId: request.DistrictId,
-                neighborhood: request.Neighborhood, // GÜNCELLENDİ
-                street: request.Street,             // GÜNCELLENDİ
-                buildingNo: request.BuildingNo,     // GÜNCELLENDİ
+                neighborhood: request.Neighborhood, 
+                street: request.Street,            
+                buildingNo: request.BuildingNo,     
                 fullAddress: request.FullAddress
             );
 
@@ -58,5 +61,12 @@ public sealed class SetVenueAddressCommandHandler : IRequestHandler<SetVenueAddr
 
         // 3. Değişiklikleri kaydet
         await _venueRepository.UpdateAsync(venue, cancellationToken);
+        // Veritabanı güncellendikten sonra (işlemin en sonunda)
+        var venueForElastic = await _venueRepository.GetVenueWithDetailsAsync(request.VenueId, cancellationToken);
+
+        if (venueForElastic != null && venueForElastic.IsApproved) // Sadece onaylı mekanlar zengin aramalara düşsün istiyorsanız
+        {
+            await _cityDiscoveryService.IndexVenueWithDetailsAsync(venueForElastic);
+        }
     }
 }

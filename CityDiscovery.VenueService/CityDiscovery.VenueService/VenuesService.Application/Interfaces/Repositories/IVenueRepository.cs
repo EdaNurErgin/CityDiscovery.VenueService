@@ -34,6 +34,8 @@ namespace CityDiscovery.Venues.Application.Interfaces.Repositories
         Task<List<Venuex>> GetByIdsAsync(List<Guid> venueIds, CancellationToken cancellationToken = default);
         Task DeactivateVenuesByOwnerAsync(Guid ownerId);
 
+        Task<Venuex> GetVenueWithDetailsAsync(Guid id, CancellationToken cancellationToken);
+
     }
 
 }

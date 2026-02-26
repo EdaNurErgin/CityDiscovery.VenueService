@@ -5,10 +5,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["CityDiscovery.VenueService.csproj", "./"]
-RUN dotnet restore "CityDiscovery.VenueService.csproj"
+COPY ["CityDiscovery.VenueService/CityDiscovery.VenueService.csproj", "CityDiscovery.VenueService/"]
+
+
+RUN dotnet restore "CityDiscovery.VenueService/CityDiscovery.VenueService.csproj"
 
 COPY . .
+
+
+WORKDIR "/src/CityDiscovery.VenueService"
 RUN dotnet build "CityDiscovery.VenueService.csproj" -c Release -o /app/build
 
 FROM build AS publish

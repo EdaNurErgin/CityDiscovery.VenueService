@@ -122,7 +122,6 @@ public class VenuesController : ControllerBase
             _currentUser.UserId.Value, // Owner id token'dan
             request.Name,
             request.Description,
-            request.AddressText,
             request.Phone,
             request.WebsiteUrl,
             request.PriceLevel,

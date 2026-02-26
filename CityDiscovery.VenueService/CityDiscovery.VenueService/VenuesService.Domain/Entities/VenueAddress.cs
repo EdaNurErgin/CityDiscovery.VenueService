@@ -14,6 +14,10 @@ public sealed class VenueAddress : Entity
     public int CityId { get; private set; }
     public int DistrictId { get; private set; }
 
+    public Country? Country { get; private set; }
+    public City? City { get; private set; }
+    public District? District { get; private set; }
+
     public string? Neighborhood { get; private set; }
     public string? Street { get; private set; }
     public string? BuildingNo { get; private set; }

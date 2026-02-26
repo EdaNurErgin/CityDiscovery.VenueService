@@ -33,7 +33,7 @@ public static class MessageBusConfiguration
                     h.Password(rabbitMqConfig["Password"] ?? "guest");
                 });
 
-                // --- 1. Identity Servisinden Gelenler (BIND ŞART!) ---
+                
 
                 // User Silindiğinde:
                 cfg.ReceiveEndpoint("venue-service-user-deleted", e =>
@@ -63,7 +63,7 @@ public static class MessageBusConfiguration
                     e.ConfigureConsumer<ContentRemovedConsumer>(context);
                 });
 
-                // --- 3. Geriye Kalan Her Şey İçin Otomatik Yapılandırma ---
+                // ---  Geriye Kalan Her Şey İçin Otomatik Yapılandırma ---
                 cfg.ConfigureEndpoints(context);
             });
         });
