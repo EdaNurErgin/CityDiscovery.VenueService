@@ -432,28 +432,28 @@ public class VenuesController : ControllerBase
         return Ok(dtos);
     }
 
-    /// <summary>
-    /// Yakındaki mekanları getirir (Public endpoint)
-    /// </summary>
-    /// <param name="lat">Enlem (Latitude)</param>
-    /// <param name="lon">Boylam (Longitude)</param>
-    /// <param name="radius">Arama yarıçapı (metre, varsayılan: 2000)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Yakındaki mekanlar listesi</returns>
-    /// <response code="200">Başarılı - Mekan listesi döner</response>
-    [HttpGet("nearby")]
-    [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetNearby(
-        [FromQuery] double lat,
-        [FromQuery] double lon,
-        [FromQuery] double radius = 2000,
-        CancellationToken cancellationToken = default)
-    {
-        var query = new GetNearbyVenuesQuery(lat, lon, radius);
-        var result = await _mediator.Send(query, cancellationToken);
-        return Ok(result);
-    }
+    ///// <summary>
+    ///// Yakındaki mekanları getirir (Public endpoint)
+    ///// </summary>
+    ///// <param name="lat">Enlem (Latitude)</param>
+    ///// <param name="lon">Boylam (Longitude)</param>
+    ///// <param name="radius">Arama yarıçapı (metre, varsayılan: 2000)</param>
+    ///// <param name="cancellationToken">Cancellation token</param>
+    ///// <returns>Yakındaki mekanlar listesi</returns>
+    ///// <response code="200">Başarılı - Mekan listesi döner</response>
+    //[HttpGet("nearby")]
+    //[AllowAnonymous]
+    //[ProducesResponseType(StatusCodes.Status200OK)]
+    //public async Task<IActionResult> GetNearby(
+    //    [FromQuery] double lat,
+    //    [FromQuery] double lon,
+    //    [FromQuery] double radius = 2000,
+    //    CancellationToken cancellationToken = default)
+    //{
+    //    var query = new GetNearbyVenuesQuery(lat, lon, radius);
+    //    var result = await _mediator.Send(query, cancellationToken);
+    //    return Ok(result);
+    //}
 
     private object MapToDto(Venuex venue)
     {
@@ -481,6 +481,9 @@ public class VenuesController : ControllerBase
     }
 
     // Aktivasyon / Deaktivasyon
+    /// <summary>
+    /// mekan acik demektir
+    /// </summary>
 
     [HttpPut("{id:guid}/activate")]
     [Authorize(Policy = "OwnerOnly")]
@@ -491,6 +494,9 @@ public class VenuesController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Mekan kapali demektir
+    /// </summary>
     [HttpPut("{id:guid}/deactivate")]
     [Authorize(Policy = "OwnerOnly")]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)

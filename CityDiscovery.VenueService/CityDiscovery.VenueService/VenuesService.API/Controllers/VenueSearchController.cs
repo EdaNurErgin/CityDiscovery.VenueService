@@ -18,6 +18,9 @@ namespace CityDiscovery.VenueService.VenuesService.API.Controllers
             _mediator = mediator;
         }
 
+        /// <summary>
+        /// venue searchbox kutusudur. Mekan ismini searchboxa girince o mekani karşına çıkarır İnstagramda isim aratmak gibi.
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<List<VenueBasicDto>>> Search([FromQuery] string keyword)
         {
