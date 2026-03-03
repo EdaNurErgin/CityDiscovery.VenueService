@@ -327,4 +327,21 @@ public sealed class VenueRepository : IVenueRepository
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
     }
 
+
+    // CityDiscovery.VenueService/Venues.Infrastructure/Data/Repository/VenueRepository.cs
+
+    public async Task<List<Venuex>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Venues
+            .Include(v => v.Address)
+                .ThenInclude(a => a.Country)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.City)
+            .Include(v => v.Address)
+                .ThenInclude(a => a.District)
+            .Include(v => v.VenueCategories)
+                .ThenInclude(vc => vc.Category)
+            .AsNoTracking() // Performans optimizasyonu
+            .ToListAsync(cancellationToken);
+    }
 }

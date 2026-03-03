@@ -506,44 +506,44 @@ public class VenuesController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Mekanları arama yapar (kategori, fiyat seviyesi, açık olan mekanlar)
-    /// </summary>
-    /// <param name="lat">Enlem (Latitude)</param>
-    /// <param name="lon">Boylam (Longitude)</param>
-    /// <param name="radius">Arama yarıçapı (metre, varsayılan: 2000)</param>
-    /// <param name="categoryId">Kategori ID (opsiyonel)</param>
-    /// <param name="minPriceLevel">Minimum fiyat seviyesi (1-5, opsiyonel)</param>
-    /// <param name="maxPriceLevel">Maximum fiyat seviyesi (1-5, opsiyonel)</param>
-    /// <param name="openNow">Şu an açık olan mekanlar (opsiyonel)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Bulunan mekanlar listesi</returns>
-    /// <response code="200">Başarılı - Mekan listesi döner</response>
-    [HttpGet("search")]
-    [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Search(
-        [FromQuery] double lat,
-        [FromQuery] double lon,
-        [FromQuery] double radius = 2000,
-        [FromQuery] int? categoryId = null,
-        [FromQuery] byte? minPriceLevel = null,
-        [FromQuery] byte? maxPriceLevel = null,
-        [FromQuery] bool? openNow = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = new SearchVenuesQuery(
-            lat,
-            lon,
-            radius,
-            categoryId,
-            minPriceLevel,
-            maxPriceLevel,
-            openNow);
+    ///// <summary>
+    ///// Mekanları arama yapar (kategori, fiyat seviyesi, açık olan mekanlar)
+    ///// </summary>
+    ///// <param name="lat">Enlem (Latitude)</param>
+    ///// <param name="lon">Boylam (Longitude)</param>
+    ///// <param name="radius">Arama yarıçapı (metre, varsayılan: 2000)</param>
+    ///// <param name="categoryId">Kategori ID (opsiyonel)</param>
+    ///// <param name="minPriceLevel">Minimum fiyat seviyesi (1-5, opsiyonel)</param>
+    ///// <param name="maxPriceLevel">Maximum fiyat seviyesi (1-5, opsiyonel)</param>
+    ///// <param name="openNow">Şu an açık olan mekanlar (opsiyonel)</param>
+    ///// <param name="cancellationToken">Cancellation token</param>
+    ///// <returns>Bulunan mekanlar listesi</returns>
+    ///// <response code="200">Başarılı - Mekan listesi döner</response>
+    //[HttpGet("search")]
+    //[AllowAnonymous]
+    //[ProducesResponseType(StatusCodes.Status200OK)]
+    //public async Task<IActionResult> Search(
+    //    [FromQuery] double lat,
+    //    [FromQuery] double lon,
+    //    [FromQuery] double radius = 2000,
+    //    [FromQuery] int? categoryId = null,
+    //    [FromQuery] byte? minPriceLevel = null,
+    //    [FromQuery] byte? maxPriceLevel = null,
+    //    [FromQuery] bool? openNow = null,
+    //    CancellationToken cancellationToken = default)
+    //{
+    //    var query = new SearchVenuesQuery(
+    //        lat,
+    //        lon,
+    //        radius,
+    //        categoryId,
+    //        minPriceLevel,
+    //        maxPriceLevel,
+    //        openNow);
 
-        var result = await _mediator.Send(query, cancellationToken);
-        return Ok(result);
-    }
+    //    var result = await _mediator.Send(query, cancellationToken);
+    //    return Ok(result);
+    //}
 
     /// <summary>
     /// Mekanın sahibinin ID'sini döner (Diğer servisler için - Public endpoint)
@@ -638,6 +638,26 @@ public class VenuesController : ControllerBase
         return NoContent();
     }
 
+
+
+    /// <summary>
+    /// Tüm mekanları listeler (Herkes görebilir - Public endpoint)
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Tüm mekanların listesi</returns>
+    /// <response code="200">Başarılı - Mekan listesi döner</response>
+    [HttpGet]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        var venues = await _venueRepository.GetAllAsync(cancellationToken);
+
+        // Sınıfın en altındaki mevcut MapToDto metodunu kullanarak verileri formatlıyoruz
+        var dtos = venues.Select(v => MapToDto(v)).ToList();
+
+        return Ok(dtos);
+    }
 }
 
 
