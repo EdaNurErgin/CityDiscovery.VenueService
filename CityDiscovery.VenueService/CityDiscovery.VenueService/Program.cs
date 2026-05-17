@@ -121,8 +121,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 var uploadRootPath = builder.Configuration["LocalFileStorage:RootPath"];
-if (!string.IsNullOrWhiteSpace(uploadRootPath) && Path.IsPathRooted(uploadRootPath) && Directory.Exists(uploadRootPath))
+if (!string.IsNullOrWhiteSpace(uploadRootPath))
 {
+    // Eğer appsettings'de "uploads" gibi relative bir path verildiyse, uygulamanın çalıştığı dizinle birleştir
+    if (!Path.IsPathRooted(uploadRootPath))
+    {
+        uploadRootPath = Path.Combine(builder.Environment.ContentRootPath, uploadRootPath);
+    }
+
+    // Uygulama başlarken klasör henüz yoksa hata vermemesi için otomatik oluştur
+    if (!Directory.Exists(uploadRootPath))
+    {
+        Directory.CreateDirectory(uploadRootPath);
+    }
+
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(uploadRootPath),
