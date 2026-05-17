@@ -120,9 +120,6 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-app.UseHttpsRedirection();
-
 var uploadRootPath = builder.Configuration["LocalFileStorage:RootPath"];
 if (!string.IsNullOrWhiteSpace(uploadRootPath) && Path.IsPathRooted(uploadRootPath) && Directory.Exists(uploadRootPath))
 {
@@ -132,6 +129,9 @@ if (!string.IsNullOrWhiteSpace(uploadRootPath) && Path.IsPathRooted(uploadRootPa
         RequestPath = "/uploads"
     });
 }
+app.UseHttpsRedirection();
+
+
 
 app.UseAuthentication();
 app.UseAuthorization();
