@@ -44,7 +44,8 @@ public sealed class LocalFileStorageService : IFileStorageService
 
         // 4) Dışarıya verilecek URL'yi oluştur
         // Örn: BaseUrl = "https://localhost:7071/uploads"
-        var fileUrl = $"{_options.BaseUrl.TrimEnd('/')}/{newFileName}";
+        //var fileUrl = $"{_options.BaseUrl.TrimEnd('/')}/{newFileName}";
+        var fileUrl = $"/uploads/{newFileName}";
 
         return fileUrl;
     }
