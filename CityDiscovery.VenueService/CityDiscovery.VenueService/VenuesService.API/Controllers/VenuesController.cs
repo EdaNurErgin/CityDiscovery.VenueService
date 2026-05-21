@@ -13,6 +13,8 @@ using CityDiscovery.Venues.Application.Features.Venues.Queries.SearchVenues;
 using CityDiscovery.Venues.Application.Interfaces.Repositories;
 using CityDiscovery.Venues.Application.Interfaces.Services;
 using CityDiscovery.Venues.Domain.Entities;
+using CityDiscovery.VenueService.VenuesService.Application.Features.Venues.Queries.GetVenueAddress;
+using CityDiscovery.VenueService.VenuesService.Shared.Common.DTOs.Venue;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -657,6 +659,30 @@ public class VenuesController : ControllerBase
         var dtos = venues.Select(v => MapToDto(v)).ToList();
 
         return Ok(dtos);
+    }
+
+    /// <summary>
+    /// Belirtilen mekanın (Venue) adres ve koordinat bilgilerini getirir.
+    /// </summary>
+    /// <remarks>
+    /// Mekana ait ülke, şehir, ilçe ID'leri ile birlikte açık adres ve enlem/boylam bilgilerini içerir.
+    /// </remarks>
+    /// <param name="id">Adresi getirilecek mekanın eşsiz (Guid) kimliği</param>
+    /// <returns>Mekan adres detayları (VenueAddressDto)</returns>
+    [HttpGet("{id}/address")]
+    [ProducesResponseType(typeof(VenueAddressDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVenueAddress(Guid id)
+    {
+        var query = new GetVenueAddressQuery(id);
+        var result = await _mediator.Send(query);
+
+        if (result == null)
+        {
+            return NotFound(new { Message = "Bu mekan için adres bilgisi bulunamadı." });
+        }
+
+        return Ok(result);
     }
 }
 

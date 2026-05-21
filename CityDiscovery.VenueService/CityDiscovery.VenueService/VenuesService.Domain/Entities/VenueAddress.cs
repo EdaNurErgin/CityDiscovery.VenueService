@@ -17,7 +17,7 @@ public sealed class VenueAddress : Entity
     public Country? Country { get; private set; }
     public City? City { get; private set; }
     public District? District { get; private set; }
-
+    public Venuex? Venue { get; private set; }
     public string? Neighborhood { get; private set; }
     public string? Street { get; private set; }
     public string? BuildingNo { get; private set; }

@@ -311,16 +311,32 @@ public sealed class VenueRepository : IVenueRepository
         }
     }
 
+    //public async Task<Venuex> GetVenueWithDetailsAsync(Guid id, CancellationToken cancellationToken)
+    //{
+    //    return await _context.Venues
+    //        .AsNoTracking() //  ChangeTracker'daki eski veriyi değil, DB'deki güncel veriyi zorla çeker.
+    //        .Include(v => v.Address)
+    //            .ThenInclude(a => a.Country)
+    //        .Include(v => v.Address)
+    //            .ThenInclude(a => a.City)
+    //        .Include(v => v.Address)
+    //            .ThenInclude(a => a.District)
+    //        .Include(v => v.VenueCategories)
+    //            .ThenInclude(vc => vc.Category)
+    //        .AsSplitQuery() // Cartesian explosion'ı önler
+    //        .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
+    //}
+
     public async Task<Venuex> GetVenueWithDetailsAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.Venues
-            .AsNoTracking() //  ChangeTracker'daki eski veriyi değil, DB'deki güncel veriyi zorla çeker.
+            .AsNoTracking() // ChangeTracker'daki eski veriyi değil, DB'deki güncel veriyi zorla çeker.
+            .Include(v => v.Address)              // ADRES BURADA JOIN EDİLİYOR
+                .ThenInclude(a => a.Country)      // ÜLKE BURADA GELİYOR
             .Include(v => v.Address)
-                .ThenInclude(a => a.Country)
+                .ThenInclude(a => a.City)         // ŞEHİR BURADA GELİYOR
             .Include(v => v.Address)
-                .ThenInclude(a => a.City)
-            .Include(v => v.Address)
-                .ThenInclude(a => a.District)
+                .ThenInclude(a => a.District)     // İLÇE BURADA GELİYOR
             .Include(v => v.VenueCategories)
                 .ThenInclude(vc => vc.Category)
             .AsSplitQuery() // Cartesian explosion'ı önler
