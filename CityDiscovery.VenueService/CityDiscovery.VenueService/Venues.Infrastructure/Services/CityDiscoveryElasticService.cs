@@ -93,8 +93,14 @@ namespace CityDiscovery.VenueService.Venues.Infrastructure.Services
                 )
             );
 
-            if (!response.IsValidResponse) return new List<VenueBasicDto>();
-
+            //if (!response.IsValidResponse) return new List<VenueBasicDto>();
+            if (!response.IsValidResponse)
+            {
+                // Hatayı konsola yazdırın veya direkt fırlatın ki ne olduğunu görebilesiniz.
+                Console.WriteLine($"ELASTIC ERROR: {response.DebugInformation}");
+                // throw new Exception(response.DebugInformation); 
+                return new List<VenueBasicDto>();
+            }
             return response.Documents;
         }
     }
